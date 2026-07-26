@@ -1,0 +1,25 @@
+{
+  "name": "dizi-midi-tool",
+  "version": "0.2.0",
+  "description": "竹笛音阶MIDI生成器 — 简谱转MIDI, D调竹笛筒音作5指法表, 器乐算法工具链",
+  "main": "src/midi-tool.js",
+  "bin": {
+    "dizi-midi": "bin/dizi-midi.js"
+  },
+  "files": [
+    "src/",
+    "bin/",
+    "LICENSE",
+    "README.md"
+  ],
+  "scripts": {
+    "start": "node bin/dizi-midi.js",
+    "demo": "node demo/basic.js",
+    "test": "node test/basic.test.js"
+  },
+  "keywords": [
+    "dizi", "bamboo-flute", "jianpu", "midi", "chinese-music",
+    "music-notation", "midi-generator", "器乐算法"
+  ],
+  "license": "MIT"
+}
