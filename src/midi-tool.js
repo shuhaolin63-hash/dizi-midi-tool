@@ -5,6 +5,15 @@
  */
 const OCTAVE_SHIFT = 12;
 
+// 时值标记: - 延长一倍, _ 缩短一半; 基准 = 四分音符(1倍)
+const DURATION_MARKS = {
+  '--': 4,   // 全音符 (4倍)
+  '-': 2,    // 二分音符 (2倍)
+  '': 1,     // 四分音符 (1倍，默认)
+  '_': 0.5,  // 八分音符 (1/2)
+  '__': 0.25, // 十六分音符 (1/4)
+};
+
 // D调竹笛【筒音作5】指法表，仅中音区基准值
 // 高音 = midi + 12, 低音 = midi - 12
 const DIZI_FINGERINGS = {
@@ -29,7 +38,7 @@ function parseJianpuToMIDI(jianpuStr, bpm = 120) {
 
   const beatDuration = 60 / bpm;
   const notes = [];
-  const chars = jianpuStr.replace(/s+/g, '');
+  const chars = jianpuStr.replace(/\s+/g, '');
   let i = 0;
 
   while (i < chars.length) {
@@ -52,15 +61,34 @@ function parseJianpuToMIDI(jianpuStr, bpm = 120) {
       i++;
     }
 
-    const finger = DIZI_FINGERINGS[noteChar];
-    if (!finger) continue; // 跳过非法字符（休止符0、字母等暂不处理）
-
     const lastNote = notes.at(-1);
     const startTime = lastNote ? lastNote.startTime + lastNote.duration : 0;
 
+    // 读取时值标记: - 延长, _ 缩短 (基准=四分音符)
+    let durationMark = '';
+    while (i < chars.length && (chars[i] === '-' || chars[i] === '_')) {
+      durationMark += chars[i];
+      i++;
+    }
+    const durationMult = DURATION_MARKS[durationMark] || 1;
+    const duration = beatDuration * durationMult;
+
+    // 休止符: 占时值但无音高
+    if (noteChar === '0') {
+      notes.push({
+        pitch: null, rest: true,
+        duration, startTime,
+        fingering: '休止',
+      });
+      continue;
+    }
+
+    const finger = DIZI_FINGERINGS[noteChar];
+    if (!finger) continue; // 跳过非法字符
+
     notes.push({
       pitch: finger.midi + octaveOffset,
-      duration: beatDuration,
+      duration,
       startTime,
       velocity: 80,
       fingering: finger.fingering + (octaveOffset === 12 ? '(高)' : octaveOffset === -12 ? '(低)' : ''),
